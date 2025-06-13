@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pvp-CarHud Standelon</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-end;
+            overflow: hidden;
+        }
+
+        .speed-container {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: opacity 0.3s ease;
+            min-width: 80px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .speed-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .speed-box {
+            display: flex;
+            align-items: center;
+            padding: 3px 15px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 80px;
+            height: 18px;
+            flex: 1;
+        }
+
+        .speed-content {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .speed-icon {
+            font-size: 10px;
+            color: #ffffff;
+            width: 12px;
+            text-align: center;
+        }
+
+        .speed-value {
+            font-size: 16px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .speed-unit {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        @media (max-width: 600px) {
+            .speed-container {
+                min-width: 70px;
+                gap: 6px;
+                padding: 3px 10px;
+            }
+            
+            .speed-box {
+                min-width: 70px;
+                height: 16px;
+                padding: 2px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="speed-container">
+        <div class="speed-box">
+            <div class="speed-content">
+                <i class="fas fa-tachometer-alt speed-icon"></i>
+                <span class="speed-value" id="speed-value">0</span>
+                <span class="speed-unit" id="speed-unit">km/h</span>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentSpeed = 0;
+        let speedUnit = 'km/h';
+        let hudConfig = {};
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            switch(data.action) {
+                case 'init':
+                    initializeHud(data);
+                    break;
+                case 'toggleHud':
+                    toggleSpeedHud(data.showSpeedHud);
+                    break;
+                case 'updateSpeed':
+                    updateSpeed(data.speed);
+                    break;
+                case 'updateUnit':
+                    updateSpeedUnit(data.speedUnit);
+                    break;
+            }
+            
+            if (data.showSpeedHud !== undefined) {
+                toggleSpeedHud(data.showSpeedHud);
+            }
+            if (data.speed !== undefined) {
+                updateSpeed(data.speed);
+            }
+        });
+        function initializeHud(config) {
+            hudConfig = config.hudStyle || {};
+            speedUnit = config.speedUnit || 'km/h';
+            
+            document.getElementById('speed-unit').textContent = speedUnit;
+            
+            if (config.hudPosition) {
+                const container = document.querySelector('.speed-container');
+                container.style.bottom = config.hudPosition.bottom + 'px';
+                container.style.right = config.hudPosition.right + 'px';
+            }
+            
+            if (hudConfig.backgroundColor) {
+                document.querySelector('.speed-container').style.background = hudConfig.backgroundColor;
+            }
+            if (hudConfig.borderColor) {
+                document.querySelector('.speed-container').style.borderColor = hudConfig.borderColor;
+            }
+            if (hudConfig.textColor) {
+                document.querySelector('.speed-value').style.color = hudConfig.textColor;
+            }
+            
+            if (hudConfig.showIcon === false) {
+                document.querySelector('.speed-icon').style.display = 'none';
+            }
+            
+            console.log('Speed HUD initialized with unit:', speedUnit);
+        }
+        function toggleSpeedHud(show) {
+            const container = document.querySelector('.speed-container');
+            if (show) {
+                container.classList.add('visible');
+            } else {
+                container.classList.remove('visible');
+            }
+        }
+        function updateSpeed(speed) {
+            currentSpeed = Math.max(0, Math.round(speed));
+            const speedValue = document.getElementById('speed-value');
+            speedValue.textContent = currentSpeed;
+        }
+        function updateSpeedUnit(unit) {
+            speedUnit = unit;
+            document.getElementById('speed-unit').textContent = unit;
+            console.log('Speed unit updated to:', unit);
+        }
+        updateSpeed(0);
+        document.addEventListener('keydown', function(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                const randomSpeed = Math.floor(Math.random() * 150);
+                updateSpeed(randomSpeed);
+            }
+            if (event.code === 'KeyH') {
+                event.preventDefault();
+                const container = document.querySelector('.speed-container');
+                toggleSpeedHud(!container.classList.contains('visible'));
+            }
+        });
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
