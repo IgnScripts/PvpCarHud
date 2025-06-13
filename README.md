@@ -3,4 +3,4 @@
 
 Simple pvp car hud for any pvp server (standalone)
 
-It goes perfect with my other recaurce https://github.com/IgnScripts/pvphud-esx
+It goes perfect with my other resource https://github.com/IgnScripts/pvphud-esx
